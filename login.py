@@ -9,6 +9,7 @@ from authentication import run_authentication_flow, OMADAC_ID
 from sites import get_sites_list, get_specific_site
 from dashboard import get_site_overview_diagram
 from devices import get_devices_list
+from audit_logs import get_site_audit_logs, get_global_audit_logs
 
 def main():
     """
@@ -63,8 +64,9 @@ def main_menu(base_url, access_token):
         print("\n--- Main Menu ---")
         print("1. Site Management")
         print("2. Device Management")
-        print("3. View a Site's Dashboard")
-        print("4. Exit")
+        print("3. Log Management")
+        print("4. View a Site's Dashboard")
+        print("5. Exit")
         choice = input("Enter your choice: ")
 
         if choice == '1':
@@ -72,8 +74,10 @@ def main_menu(base_url, access_token):
         elif choice == '2':
             handle_device_management(base_url, access_token)
         elif choice == '3':
-            handle_dashboard_view(base_url, access_token)
+            handle_logs_management(base_url, access_token)
         elif choice == '4':
+            handle_dashboard_view(base_url, access_token)
+        elif choice == '5':
             print("\nExiting. Goodbye!")
             break
         else:
@@ -125,6 +129,87 @@ def handle_site_management(base_url, access_token):
             return # Return to the main_menu loop
         else:
             print("\nInvalid choice. Please try again.")
+
+def handle_logs_management(base_url, access_token):
+    """Displays a menu for log operations."""
+    while True:
+        print("\n--- Log Management ---")
+        print("1. View Site Audit Logs")
+        print("2. View Global Audit Logs")
+        print("3. View Application Usage (Not Implemented)")
+        print("4. Return to Main Menu")
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            handle_site_audit_log_view(base_url, access_token)
+        elif choice == '2':
+            handle_global_audit_log_view(base_url, access_token)
+        elif choice == '3':
+            print("\nThis feature is not yet implemented.")
+        elif choice == '4':
+            return
+        else:
+            print("\nInvalid choice. Please try again.")
+
+def handle_site_audit_log_view(base_url, access_token):
+    """Handles fetching and displaying site audit logs."""
+    print("\n--- View Site Audit Logs: Select a Site ---")
+    sites = get_sites_list(base_url, access_token, OMADAC_ID)
+    if not sites:
+        print("Could not retrieve sites to select from.")
+        return
+
+    for site in sites:
+        print(f"  - Name: {site.get('name', 'N/A')}, ID: {site.get('id')}")
+
+    site_id = input("\nEnter the Site ID to view its audit logs: ")
+    if not site_id:
+        return
+
+    params = _get_audit_log_params_from_user()
+
+    logs = get_site_audit_logs(base_url, access_token, OMADAC_ID, site_id, params)
+    if logs:
+        print("\n--- Site Audit Logs ---")
+        print(json.dumps(logs, indent=2))
+
+def handle_global_audit_log_view(base_url, access_token):
+    """Handles fetching and displaying global audit logs."""
+    print("\n--- View Global Audit Logs ---")
+    
+    params = _get_audit_log_params_from_user()
+
+    logs = get_global_audit_logs(base_url, access_token, OMADAC_ID, params)
+    if logs:
+        print("\n--- Global Audit Logs ---")
+        #print(json.dumps(logs, indent=2))
+
+def _get_audit_log_params_from_user():
+    """Helper function to collect audit log filter parameters from the user."""
+    print("\n--- Configure Log Filters (press Enter to skip a filter) ---")
+    params = {}
+    params['pageSize'] = input("Page Size (1-1000, e.g., 100): ") or "100"
+
+    sort_time = input("Sort by time ('asc' or 'desc'): ")
+    if sort_time:
+        params['sorts.time'] = sort_time
+    
+    filter_result = input("Filter by result (0 for success, 1 for failed): ")
+    if filter_result:
+        params['filters.result'] = filter_result
+    
+    filter_level = input("Filter by level (Error, Warning, Information): ")
+    if filter_level:
+        params['filters.level'] = filter_level
+    
+    filter_types = input("Filter by audit types (comma-separated, e.g., Log,Cloud Access): ")
+    if filter_types:
+        params['filters.auditTypes'] = filter_types
+    
+    search_key = input("Fuzzy search for content: ")
+    if search_key:
+        params['searchKey'] = search_key
+    return params
 
 if __name__ == "__main__":
     main()
