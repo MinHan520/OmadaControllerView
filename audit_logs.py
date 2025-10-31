@@ -1,9 +1,11 @@
 """
 This module handles audit log operations for the Omada controller.
 """
+import firebase_admin
+from firebase_admin import credentials, firestore
 from authentication import make_request
 
-def get_site_audit_logs(base_url, access_token, omadac_id, site_id, params):
+def get_site_audit_logs(base_url, access_token, omadac_id, site_id, params, db):
     """
     Retrieves a list of audit logs for a specific site from the Omada controller.
     This function handles pagination to retrieve all logs.
@@ -14,6 +16,7 @@ def get_site_audit_logs(base_url, access_token, omadac_id, site_id, params):
         omadac_id (str): The Omada Controller ID.
         site_id (str): The ID of the site whose logs are to be retrieved.
         params (dict): A dictionary of query parameters (filters, sorts, etc.).
+        db (firestore.Client): The Firestore client for database operations.
 
     Returns:
         list: A list of audit log dictionaries, or None if the request fails.
@@ -57,6 +60,15 @@ def get_site_audit_logs(base_url, access_token, omadac_id, site_id, params):
             all_logs.extend(current_page_logs)
             print(f"Fetched {len(current_page_logs)} logs. Total so far: {len(all_logs)}/{total_logs}")
 
+            # --- Save logs to Firestore ---
+            if db:
+                print(f"Saving {len(current_page_logs)} logs to Firestore under sites/{site_id}/audit_logs...")
+                for log_entry in current_page_logs:
+                    try:
+                        db.collection('sites').document(site_id).collection('audit_logs').add(log_entry)
+                    except Exception as e:
+                        print(f"Error saving log to Firestore: {e}")
+
             if len(all_logs) >= total_logs:
                 print("\nAll audit logs have been retrieved.")
                 break
@@ -72,7 +84,7 @@ def get_site_audit_logs(base_url, access_token, omadac_id, site_id, params):
             
     return all_logs
 
-def get_global_audit_logs(base_url, access_token, omadac_id, params):
+def get_global_audit_logs(base_url, access_token, omadac_id, params, db):
     """
     Retrieves a list of global audit logs from the Omada controller.
     This function handles pagination to retrieve all logs.
@@ -82,6 +94,7 @@ def get_global_audit_logs(base_url, access_token, omadac_id, params):
         access_token (str): The access token for authentication.
         omadac_id (str): The Omada Controller ID.
         params (dict): A dictionary of query parameters (filters, sorts, etc.).
+        db (firestore.Client): The Firestore client for database operations.
 
     Returns:
         list: A list of audit log dictionaries, or None if the request fails.
@@ -124,6 +137,15 @@ def get_global_audit_logs(base_url, access_token, omadac_id, params):
 
             all_logs.extend(current_page_logs)
             print(f"Fetched {len(current_page_logs)} logs. Total so far: {len(all_logs)}/{total_logs}")
+
+            # --- Save logs to Firestore ---
+            if db:
+                print(f"Saving {len(current_page_logs)} logs to Firestore under global_audit_logs...")
+                for log_entry in current_page_logs:
+                    try:
+                        db.collection('global_audit_logs').add(log_entry)
+                    except Exception as e:
+                        print(f"Error saving global log to Firestore: {e}")
 
             if len(all_logs) >= total_logs:
                 print("\nAll global audit logs have been retrieved.")

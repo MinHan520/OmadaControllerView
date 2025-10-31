@@ -1,16 +1,20 @@
 """
 This module handles site-related operations for the Omada controller.
 """
+import firebase_admin
+from firebase_admin import credentials, firestore
 from authentication import make_request
 
-def get_sites_list(base_url, access_token, omadac_id):
+def get_sites_list(base_url, access_token, omadac_id, db):
     """
     Retrieves a list of all sites from the Omada controller.
+    Also saves/updates each site in the Firestore database.
 
     Args:
         base_url (str): The base URL of the Omada controller.
         access_token (str): The access token for authentication.
         omadac_id (str): The Omada Controller ID.
+        db (firestore.Client): The Firestore client for database operations.
 
     Returns:
         list: A list of site dictionaries, or None if the request fails.
@@ -53,6 +57,18 @@ def get_sites_list(base_url, access_token, omadac_id):
             all_sites.extend(current_page_sites)
             print(f"Fetched {len(current_page_sites)} sites. Total so far: {len(all_sites)}/{total_sites}")
 
+            # --- MODIFICATION AREA 1: Save sites to Firestore ---
+            if db:
+                print(f"Saving {len(current_page_sites)} sites to Firestore...")
+                for site in current_page_sites:
+                    try:
+                        site_id = site.get('id')
+                        if site_id:
+                            db.collection('sites').document(site_id).set(site)
+                    except Exception as e:
+                        print(f"Error saving site {site.get('id', 'N/A')} to Firestore: {e}")
+            # --- END MODIFICATION AREA 1 ---
+
             if len(all_sites) >= total_sites:
                 print("\nAll sites have been retrieved.")
                 break
@@ -64,15 +80,17 @@ def get_sites_list(base_url, access_token, omadac_id):
             
     return all_sites
 
-def get_specific_site(base_url, access_token, omadac_id, site_id):
+def get_specific_site(base_url, access_token, omadac_id, site_id, db):
     """
     Retrieves information for a specific site from the Omada controller.
+    Also saves/updates the site in the Firestore database.
 
     Args:
         base_url (str): The base URL of the Omada controller.
         access_token (str): The access token for authentication.
         omadac_id (str): The Omada Controller ID.
         site_id (str): The ID of the site to retrieve.
+        db (firestore.Client): The Firestore client for database operations.
 
     Returns:
         dict: A dictionary of the site's information, or None if the request fails.
@@ -91,6 +109,15 @@ def get_specific_site(base_url, access_token, omadac_id, site_id):
         if data.get("errorCode") == 0:
             site_info = data.get("result")
             print(f"Successfully retrieved information for site '{site_info.get('name', site_id)}'.")
+
+            # --- MODIFICATION AREA 2: Save specific site to Firestore ---
+            if db and site_info:
+                try:
+                    db.collection('sites').document(site_id).set(site_info)
+                    print(f"Site {site_id} saved/updated in Firestore.")
+                except Exception as e:
+                    print(f"Error saving site {site_id} to Firestore: {e}")
+            # --- END MODIFICATION AREA 2 ---
             return site_info
         print(f"API Error fetching site {site_id}: {data.get('msg')} (Code: {data.get('errorCode')})")
     except (ValueError, KeyError) as e:

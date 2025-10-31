@@ -2,25 +2,44 @@
 This module handles the user login flow.
 https://10.30.31.115:8043
 https://192.168.0.2:443
+https://192.168.0.106:8043
 """
 import getpass
 import json
+import firebase_admin
+from firebase_admin import credentials, firestore
 from authentication import run_authentication_flow, OMADAC_ID
 from sites import get_sites_list, get_specific_site
 from dashboard import get_site_overview_diagram
 from devices import get_devices_list
 from audit_logs import get_site_audit_logs, get_global_audit_logs
 
+def initialize_firestore(service_account_key_path="serviceAccountKey.json"):
+    """
+    Initializes the Firebase Admin SDK and returns a Firestore client.
+    Handles cases where the app is already initialized.
+
+    Args:
+        service_account_key_path (str): Path to the Firebase service account key.
+
+    Returns:
+        firestore.Client: The Firestore database client, or None if initialization fails.
+    """
+    try:
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(service_account_key_path)
+            firebase_admin.initialize_app(cred)
+        return firestore.client()
+    except Exception as e:
+        print(f"Error initializing Firestore: {e}")
+        return None
+
 def main():
     """
     Main function to get user credentials and run the authentication flow.
     """
     print("--- Omada Controller Login ---")
-    
-    # Prompt for controller's base URL
     base_url = input("Enter the controller's base URL (e.g., https://192.168.1.100): ")
-    
-    # Prompt for username and password
     username = input("Enter your username: ")
     try:
         password = getpass.getpass("Enter your password: ")
@@ -28,21 +47,31 @@ def main():
         print('ERROR', error)
         return
 
-    # Run the full authentication flow
     access_token, refresh_token = run_authentication_flow(base_url, username, password)
 
     if access_token:
         print("\n\n✅ Authentication Successful!")
-        print(f"   Access Token: {access_token}")
-        # Proceed to the main application menu
-        main_menu(base_url, access_token)
 
-def handle_dashboard_view(base_url, access_token):
+        # Initialize Firestore
+        print("\n--- Initializing Firestore ---")
+        db = initialize_firestore()
+
+        if db:
+            # Proceed with normal application logic
+            print("✅ Firestore client initialized successfully.")
+            # Proceed to the main application menu, passing the db client
+            main_menu(base_url, access_token, db)
+        else:
+            print("❌ Could not initialize Firestore. Database features will be unavailable.")
+            # You could choose to exit here, or proceed without db features
+            # main_menu(base_url, access_token, None)
+
+def handle_dashboard_view(base_url, access_token, db):
     """
     Lists sites and prompts the user to view a dashboard before the main menu.
     """
     print("\nFetching available sites to display a dashboard...")
-    sites = get_sites_list(base_url, access_token, OMADAC_ID)
+    sites = get_sites_list(base_url, access_token, OMADAC_ID, db)
     if not sites:
         print("Could not retrieve sites.")
         return
@@ -58,7 +87,7 @@ def handle_dashboard_view(base_url, access_token):
             print("\n--- Site Dashboard Overview ---")
             print(json.dumps(dashboard_info, indent=2))
 
-def main_menu(base_url, access_token):
+def main_menu(base_url, access_token, db):
     """Displays the main menu and routes to sub-menus."""
     while True:
         print("\n--- Main Menu ---")
@@ -70,23 +99,23 @@ def main_menu(base_url, access_token):
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            handle_site_management(base_url, access_token)
+            handle_site_management(base_url, access_token, db)
         elif choice == '2':
-            handle_device_management(base_url, access_token)
+            handle_device_management(base_url, access_token, db)
         elif choice == '3':
-            handle_logs_management(base_url, access_token)
+            handle_logs_management(base_url, access_token, db)
         elif choice == '4':
-            handle_dashboard_view(base_url, access_token)
+            handle_dashboard_view(base_url, access_token, db)
         elif choice == '5':
             print("\nExiting. Goodbye!")
             break
         else:
             print("\nInvalid choice. Please try again.")
 
-def handle_device_management(base_url, access_token):
+def handle_device_management(base_url, access_token, db):
     """Handles listing devices for a user-selected site."""
     print("\n--- Device Management: Select a Site ---")
-    sites = get_sites_list(base_url, access_token, OMADAC_ID)
+    sites = get_sites_list(base_url, access_token, OMADAC_ID, db)
     if not sites:
         print("Could not retrieve sites to select from.")
         return
@@ -101,7 +130,7 @@ def handle_device_management(base_url, access_token):
             print("\n--- Device List ---")
             print(json.dumps(devices, indent=2))
 
-def handle_site_management(base_url, access_token):
+def handle_site_management(base_url, access_token, db):
     """
     Displays a menu for site operations.
     """
@@ -113,7 +142,7 @@ def handle_site_management(base_url, access_token):
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            sites = get_sites_list(base_url, access_token, OMADAC_ID)
+            sites = get_sites_list(base_url, access_token, OMADAC_ID, db)
             if sites:
                 print("\n--- Available Sites ---")
                 # Pretty print the site list
@@ -121,7 +150,7 @@ def handle_site_management(base_url, access_token):
         elif choice == '2':
             site_id = input("Enter the site ID to view: ")
             if site_id:
-                site_info = get_specific_site(base_url, access_token, OMADAC_ID, site_id)
+                site_info = get_specific_site(base_url, access_token, OMADAC_ID, site_id, db)
                 if site_info:
                     print("\n--- Site Details ---")
                     print(json.dumps(site_info, indent=2))
@@ -130,7 +159,7 @@ def handle_site_management(base_url, access_token):
         else:
             print("\nInvalid choice. Please try again.")
 
-def handle_logs_management(base_url, access_token):
+def handle_logs_management(base_url, access_token, db):
     """Displays a menu for log operations."""
     while True:
         print("\n--- Log Management ---")
@@ -141,9 +170,9 @@ def handle_logs_management(base_url, access_token):
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            handle_site_audit_log_view(base_url, access_token)
+            handle_site_audit_log_view(base_url, access_token, db)
         elif choice == '2':
-            handle_global_audit_log_view(base_url, access_token)
+            handle_global_audit_log_view(base_url, access_token, db)
         elif choice == '3':
             print("\nThis feature is not yet implemented.")
         elif choice == '4':
@@ -151,10 +180,10 @@ def handle_logs_management(base_url, access_token):
         else:
             print("\nInvalid choice. Please try again.")
 
-def handle_site_audit_log_view(base_url, access_token):
+def handle_site_audit_log_view(base_url, access_token, db):
     """Handles fetching and displaying site audit logs."""
     print("\n--- View Site Audit Logs: Select a Site ---")
-    sites = get_sites_list(base_url, access_token, OMADAC_ID)
+    sites = get_sites_list(base_url, access_token, OMADAC_ID, db)
     if not sites:
         print("Could not retrieve sites to select from.")
         return
@@ -168,21 +197,21 @@ def handle_site_audit_log_view(base_url, access_token):
 
     params = _get_audit_log_params_from_user()
 
-    logs = get_site_audit_logs(base_url, access_token, OMADAC_ID, site_id, params)
+    logs = get_site_audit_logs(base_url, access_token, OMADAC_ID, site_id, params, db)
     if logs:
         print("\n--- Site Audit Logs ---")
         print(json.dumps(logs, indent=2))
 
-def handle_global_audit_log_view(base_url, access_token):
+def handle_global_audit_log_view(base_url, access_token, db):
     """Handles fetching and displaying global audit logs."""
     print("\n--- View Global Audit Logs ---")
     
     params = _get_audit_log_params_from_user()
 
-    logs = get_global_audit_logs(base_url, access_token, OMADAC_ID, params)
+    logs = get_global_audit_logs(base_url, access_token, OMADAC_ID, params, db)
     if logs:
         print("\n--- Global Audit Logs ---")
-        #print(json.dumps(logs, indent=2))
+        print(json.dumps(logs, indent=2))
 
 def _get_audit_log_params_from_user():
     """Helper function to collect audit log filter parameters from the user."""
