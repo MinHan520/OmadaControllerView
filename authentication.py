@@ -9,12 +9,12 @@ import requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- Configuration ---
-# CLIENT_ID = "975fc957360942df99cbd661a833e4cc"
-CLIENT_ID = "47f10502b539408faeb61b75f78e21a2"
-# CLIENT_SECRET = "7488ee406c9843fa80e86d0f9570c693"
-CLIENT_SECRET = "639686a2051a43e5b0366877ed7f163e"
-# OMADAC_ID = "6efebeb06fb81dfe27d81641e734ada3"
-OMADAC_ID = "1242a081f0444ff04b7a53b9e0299fb0"
+CLIENT_ID = "975fc957360942df99cbd661a833e4cc"
+#CLIENT_ID = "47f10502b539408faeb61b75f78e21a2"
+CLIENT_SECRET = "7488ee406c9843fa80e86d0f9570c693"
+#CLIENT_SECRET = "639686a2051a43e5b0366877ed7f163e"
+OMADAC_ID = "6efebeb06fb81dfe27d81641e734ada3"
+#OMADAC_ID = "1242a081f0444ff04b7a53b9e0299fb0"
 
 def make_request(base_url, method, url_path, headers=None, data=None, json_data=None, params=None):
     """
