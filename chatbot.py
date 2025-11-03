@@ -37,7 +37,7 @@ def initialize_dependencies():
     # 2. Configure Gemini API
     try:
         #gemini_api_key = os.environ.get("GEMINI_API_KEY")
-        gemini_api_key = 'AIzaSyBaKY-E0J_Qz1R4d1sUpNxxjOaOkfLmJV4'
+        gemini_api_key = '{YOUR_GEMINI_KEY}'
         if not gemini_api_key:
             raise ValueError("GEMINI_API_KEY environment variable not found.")
         genai.configure(api_key=gemini_api_key)
