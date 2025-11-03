@@ -54,7 +54,7 @@ def main():
 
         # Initialize Firestore
         print("\n--- Initializing Firestore ---")
-        db = initialize_firestore()
+        db = initialize_firestore("omadasdn-52c0d-firebase-adminsdk-fbsvc-d1221871c5.json")
 
         if db:
             # Proceed with normal application logic
@@ -82,7 +82,7 @@ def handle_dashboard_view(base_url, access_token, db):
 
     site_id = input("\nEnter a Site ID to view its dashboard (or press Enter to skip): ")
     if site_id:
-        dashboard_info = get_site_overview_diagram(base_url, access_token, OMADAC_ID, site_id)
+        dashboard_info = get_site_overview_diagram(base_url, access_token, OMADAC_ID, site_id, db)
         if dashboard_info:
             print("\n--- Site Dashboard Overview ---")
             print(json.dumps(dashboard_info, indent=2))
@@ -125,7 +125,7 @@ def handle_device_management(base_url, access_token, db):
 
     site_id = input("\nEnter the Site ID to view its devices: ")
     if site_id:
-        devices = get_devices_list(base_url, access_token, OMADAC_ID, site_id)
+        devices = get_devices_list(base_url, access_token, OMADAC_ID, site_id, db)
         if devices:
             print("\n--- Device List ---")
             print(json.dumps(devices, indent=2))
