@@ -1,7 +1,8 @@
 """
 This module handles the user login flow.
 https://10.30.31.115:8043
-https://192.168.0.2:443
+
+https://192.168.0.7:8043
 https://192.168.0.106:8043
 """
 import getpass
@@ -13,6 +14,7 @@ from sites import get_sites_list, get_specific_site
 from dashboard import get_site_overview_diagram
 from devices import get_devices_list
 from audit_logs import get_site_audit_logs, get_global_audit_logs
+from chatbot import initialize_dependencies as initialize_chatbot, get_chat_response, read_all_firestore_data
 
 def initialize_firestore(service_account_key_path="serviceAccountKey.json"):
     """
@@ -95,7 +97,9 @@ def main_menu(base_url, access_token, db):
         print("2. Device Management")
         print("3. Log Management")
         print("4. View a Site's Dashboard")
-        print("5. Exit")
+        print("5. AI Chatbot Assistant")
+        print("6. Read All Firestore Data (Diagnostic)")
+        print("7. Exit")
         choice = input("Enter your choice: ")
 
         if choice == '1':
@@ -107,6 +111,10 @@ def main_menu(base_url, access_token, db):
         elif choice == '4':
             handle_dashboard_view(base_url, access_token, db)
         elif choice == '5':
+            handle_ai_chatbot(db)
+        elif choice == '6':
+            read_all_firestore_data(db)
+        elif choice == '7':
             print("\nExiting. Goodbye!")
             break
         else:
@@ -239,6 +247,44 @@ def _get_audit_log_params_from_user():
     if search_key:
         params['searchKey'] = search_key
     return params
+
+def handle_ai_chatbot(db):
+    """
+    Initializes and runs a conversational session with the AI chatbot.
+    """
+    print("\n--- 🤖 Initializing AI Chatbot Assistant ---")
+    # The chatbot's initializer is idempotent for Firebase and will configure Gemini.
+    # We only need the model from it, as we already have the db client.
+    _, model = initialize_chatbot()
+
+    if not model:
+        print("❌ Could not initialize the AI model. The chatbot is unavailable.")
+        return
+
+    print("\n✅ Chatbot is ready. Ask questions about your Omada network.")
+    print("   Type 'exit' to return to the main menu.")
+
+    chat_history = []
+    while True:
+        try:
+            user_query = input("\nYou: ")
+            if user_query.lower() == 'exit':
+                print("Returning to the main menu...")
+                break
+
+            # Get the response from the chatbot's main function
+            response_dict = get_chat_response(user_query, chat_history, db, model)
+            bot_answer = response_dict.get("answer", "I'm sorry, I don't have an answer for that.")
+
+            print(f"Bot: {bot_answer}")
+
+            # Update the chat history for conversational context
+            chat_history.append(f"User: {user_query}")
+            chat_history.append(f"Bot: {bot_answer}")
+
+        except KeyboardInterrupt:
+            print("\nReturning to the main menu...")
+            break
 
 if __name__ == "__main__":
     main()
