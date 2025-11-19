@@ -1,0 +1,27 @@
+
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #ffffff; /* White */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: #333333; /* Dark Gray */
+}
+
+.App-link {
+  color: #00A870; /* Green */
+  text-decoration: none;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .App-header {
+    padding: 10px;
+    font-size: calc(8px + 2vmin);
+  }
+}

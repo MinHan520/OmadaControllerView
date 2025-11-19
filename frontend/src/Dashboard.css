@@ -1,0 +1,145 @@
+
+/* General Dashboard Layout */
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    transition: margin-left 0.3s ease;
+}
+
+.dashboard-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h2 {
+    font-size: 1.8rem;
+    color: #333;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 250px;
+    background-color: #2c3e50; /* Dark blue-grey */
+    color: white;
+    padding: 1rem;
+    transition: width 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    height: 100%;
+    z-index: 100;
+}
+
+.sidebar h3 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+}
+
+.sites-dropdown {
+    margin-bottom: 2rem;
+}
+
+.sites-dropdown label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.sites-dropdown select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-nav li {
+    padding: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.sidebar-nav li:hover {
+    background-color: #34495e; /* Slightly lighter blue-grey */
+}
+
+.sidebar-nav li.active {
+    background-color: #1abc9c; /* Teal color */
+    font-weight: bold;
+}
+
+/* Stat Card and Grid */
+.info-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.info-card h3 {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.info-card p {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Hamburger Menu */
+.hamburger {
+    display: none; /* Hidden by default, shown in media query */
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 101;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.hamburger span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    margin: 5px 0;
+    background-color: #333;
+}
+
+/* Chatbot Styles (assuming you have a Chatbot.css) */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        left: -250px; /* Hidden by default */
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .hamburger {
+        display: block;
+    }
+}

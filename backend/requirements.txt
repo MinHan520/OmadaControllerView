@@ -1,0 +1,5 @@
+firebase-admin
+requests
+python-jose
+Flask
+flask-cors
