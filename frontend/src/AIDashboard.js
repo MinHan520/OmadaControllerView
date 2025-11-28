@@ -124,6 +124,80 @@ const AIDashboard = ({ site, ngrokUrl, token }) => {
                 )}
             </div>
 
+            {/* New Row: Priority Tasks */}
+            <div className="info-card ai-card">
+                <h3>Recommended Priority Tasks</h3>
+                {healthData.priorityTasks && healthData.priorityTasks.length > 0 ? (
+                    <div className="priority-tasks-grid">
+                        {healthData.priorityTasks.map((task, idx) => (
+                            <div key={idx} className="task-card">
+                                <div className="task-header">
+                                    <span className={`priority-badge ${task.priority.toLowerCase()}`}>{task.priority} Priority</span>
+                                    <span className="task-subject">{task.subject}</span>
+                                </div>
+                                <p className="task-description">{task.task}</p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p>No immediate priority tasks identified.</p>
+                )}
+            </div>
+
+            <style>{`
+                .priority-tasks-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 15px;
+                    margin-top: 15px;
+                }
+                .task-card {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 8px;
+                    padding: 15px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+                .task-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .priority-badge {
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 0.8em;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                }
+                .priority-badge.high {
+                    background-color: rgba(213, 0, 0, 0.2);
+                    color: #ff5252;
+                    border: 1px solid #ff5252;
+                }
+                .priority-badge.medium {
+                    background-color: rgba(255, 214, 0, 0.2);
+                    color: #ffd600;
+                    border: 1px solid #ffd600;
+                }
+                .priority-badge.low {
+                    background-color: rgba(0, 200, 83, 0.2);
+                    color: #69f0ae;
+                    border: 1px solid #69f0ae;
+                }
+                .task-subject {
+                    font-size: 0.8em;
+                    opacity: 0.8;
+                    font-weight: 500;
+                }
+                .task-description {
+                    font-size: 0.85em;
+                    line-height: 1.4;
+                }
+            `}</style>
+
             <style>{`
                 .ai-dashboard {
                     display: flex;

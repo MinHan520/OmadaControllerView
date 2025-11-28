@@ -321,14 +321,23 @@ function Dashboard({ accessToken, ngrokUrl, baseUrl }) {
 
     // Fetch sites on component mount
     useEffect(() => {
+        console.log("Dashboard useEffect triggered. Params:", { accessToken, ngrokUrl, baseUrl });
         if (accessToken && ngrokUrl && baseUrl) {
+            console.log("Fetching sites from:", `${ngrokUrl}/sites`);
             fetch(`${ngrokUrl}/sites`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ base_url: baseUrl, access_token: accessToken }),
             })
-                .then(res => res.json())
+                .then(res => {
+                    console.log("Sites API Response Status:", res.status);
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
+                    console.log("Sites API Data:", data);
                     if (data && data.result && Array.isArray(data.result.data)) {
                         const sites = data.result.data;
                         setSites(sites);
@@ -337,8 +346,15 @@ function Dashboard({ accessToken, ngrokUrl, baseUrl }) {
                             const siteWithBaseUrl = { ...sites[0], base_url: baseUrl };
                             setSelectedSite(siteWithBaseUrl);
                         }
+                    } else {
+                        console.warn("Unexpected sites data structure:", data);
                     }
+                })
+                .catch(err => {
+                    console.error("Error fetching sites:", err);
                 });
+        } else {
+            console.warn("Missing required params for fetching sites.");
         }
     }, [accessToken, ngrokUrl, baseUrl]);
 

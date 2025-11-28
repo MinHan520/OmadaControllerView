@@ -33,10 +33,10 @@ def get_sites_list(base_url, access_token, omadac_id):
             if not current_page_data:
                 break
 
-            # --- Firestore Integration ---
-            print("---[sites-v1] Saving fetched sites to Firestore... ---")
-            for site_data in current_page_data:
-                save_document(collection_id="sites", document_id=site_data.get("siteId"), data=site_data)
+            # --- Firestore Integration (Disabled to fix timeout) ---
+            # print("---[sites-v1] Saving fetched sites to Firestore... ---")
+            # for site_data in current_page_data:
+            #     save_document(collection_id="sites", document_id=site_data.get("siteId"), data=site_data)
             # ---------------------------
 
             all_sites.extend(current_page_data)

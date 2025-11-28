@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Login.css';
 
-const NGROK_URL = "https://f7c2a5ec4f0e.ngrok-free.app";
+const NGROK_URL = " https://e39f2f871264.ngrok-free.app";
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState('');

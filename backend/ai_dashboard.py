@@ -60,18 +60,23 @@ def get_ai_dashboard_data(site_id, token, base_url):
         
         Task:
         1. Calculate a 'healthScore' (0-100) based on device status (connected/disconnected), CPU/Mem usage, and error logs.
-        2. Generate a short 'healthScoreExplanation' (max 2 sentences) explaining WHY the score is calculated this way (e.g., "Score is 95 because all devices are online and traffic is normal, but one AP has slightly high memory.").
+        2. Generate a short 'healthScoreExplanation' (max 2 sentences) explaining WHY the score is calculated this way.
         3. Generate 2-3 specific 'insights' about the network's current state.
-        4. Identify any 'anomalies' (e.g., high latency, disconnected devices, high CPU). If none, return empty list.
-        5. Predict 'predictions' for network load (%) for the next 24 hours (hourly). Base this on the current traffic trend if visible, otherwise assume a standard daily curve (peak 9am-5pm).
+        4. Identify any 'anomalies'.
+        5. Predict 'predictions' for network load (%) for the next 24 hours.
+        6. Generate a list of 'priorityTasks' (max 3). Each task should have a 'subject' (e.g., Security, Performance, Maintenance), a 'task' description, and a 'priority' (High, Medium, Low).
         
         Output format: JSON ONLY.
         {{
             "healthScore": 95,
-            "healthScoreExplanation": "Score is high because all critical devices are online with low resource usage.",
+            "healthScoreExplanation": "Score is high because...",
             "insights": ["Insight 1", "Insight 2"],
             "anomalies": [{{"severity": "High", "entity": "AP-1", "issue": "Disconnected", "recommendation": "Check cable"}}],
-            "predictions": [{{"time": "10:00", "predictedLoad": 45}}, ...]
+            "predictions": [{{"time": "10:00", "predictedLoad": 45}}],
+            "priorityTasks": [
+                {{"subject": "Connectivity", "task": "Reboot Switch A", "priority": "High"}},
+                {{"subject": "Performance", "task": "Optimize channel width", "priority": "Medium"}}
+            ]
         }}
         """
         
@@ -84,11 +89,11 @@ def get_ai_dashboard_data(site_id, token, base_url):
     except Exception as e:
         print(f"AI Analysis Failed: {e}")
         # Fallback to mock/safe data if AI fails
-        return {{
+        return {
             "healthScore": 0,
             "healthScoreExplanation": "AI analysis failed, so the score cannot be explained.",
             "insights": ["AI Analysis failed. Please check backend logs."],
             "anomalies": [],
-            "predictions": []
-        }}
-
+            "predictions": [],
+            "priorityTasks": []
+        }

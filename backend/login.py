@@ -16,6 +16,7 @@ from dashboard import get_site_overview_diagram
 from devices import get_devices_list
 from audit_logs import get_site_audit_logs, get_global_audit_logs
 from chatbot import initialize_dependencies as initialize_chatbot, get_chat_response, read_all_firestore_data
+from vigi_ipc import authenticate_configured_vigi
 
 def initialize_firestore(service_account_key_path="serviceAccountKey.json"):
     """
@@ -54,6 +55,13 @@ def main():
 
     if access_token:
         print("\n\n✅ Authentication Successful!")
+
+        # Authenticate VIGI IPC
+        vigi_stok = authenticate_configured_vigi()
+        if vigi_stok:
+            print(f"✅ VIGI IPC Authentication Successful! Stok: {vigi_stok}")
+        else:
+            print("❌ VIGI IPC Authentication Failed.")
 
         # Initialize Firestore
         print("\n--- Initializing Firestore ---")
