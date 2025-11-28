@@ -1,97 +1,113 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './Chatbot.css';
 
-const TypingIndicator = () => (
-    <div className="message bot">
-        <div className="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-    </div>
-);
-
-const Chatbot = ({ ngrokUrl, token, isVisible, onClose }) => {
+const Chatbot = ({ accessToken, baseUrl, apiUrl }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { text: 'Hello there! I am your Omada Controller Assistant. How can I help you today?', sender: 'bot' },
+        { id: 1, text: "Hi! I'm your Omada Assistant. How can I help you today?", sender: 'bot' }
     ]);
-    const [inputValue, setInputValue] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    useEffect(scrollToBottom, [messages, isTyping]);
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, isOpen]);
+
+    const toggleChat = () => {
+        setIsOpen(!isOpen);
+    };
 
     const handleSendMessage = async (e) => {
-        if (e.key && e.key !== 'Enter') return;
-        if (!inputValue.trim()) return;
+        e.preventDefault();
+        if (!input.trim()) return;
 
-        const newMessages = [...messages, { text: inputValue, sender: 'user' }];
-        setMessages(newMessages);
-        setInputValue('');
-        setIsTyping(true);
+        const userMessage = { id: Date.now(), text: input, sender: 'user' };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsLoading(true);
 
         try {
-            // const response = await fetch(`${ngrokUrl}/chatbot`, { // Uncomment when backend is ready
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         'Authorization': `Bearer ${token}`,
-            //         'ngrok-skip-browser-warning': 'true',
-            //     },
-            //     body: JSON.stringify({ message: inputValue }),
-            // });
+            const response = await fetch(`${apiUrl}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
+                },
+                body: JSON.stringify({
+                    message: userMessage.text,
+                    access_token: accessToken,
+                    base_url: baseUrl
+                }),
+            });
 
-            // const data = await response.json();
+            const data = await response.json();
 
-            // --- Mock Response (for now) ---
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            const data = { reply: "That's an excellent question! I'm currently set up with placeholder data, but I'm learning more every day. Soon, I'll be able to give you detailed information about your Omada Controller. Is there anything else I can help you with?" };
-            // --- End Mock Response ---
-
-            setMessages(currentMessages => [...currentMessages, { text: data.reply, sender: 'bot' }]);
+            if (response.ok) {
+                const botMessage = {
+                    id: Date.now() + 1,
+                    text: data.answer || "I didn't get a response.",
+                    sender: 'bot'
+                };
+                setMessages(prev => [...prev, botMessage]);
+            } else {
+                throw new Error(data.error || 'Failed to get response');
+            }
         } catch (error) {
-            console.error("Error sending message to chatbot backend:", error);
-            setMessages(currentMessages => [...currentMessages, { text: "I seem to be having a little trouble connecting. Please try again in a moment.", sender: 'bot' }]);
+            console.error('Chat error:', error);
+            const errorMessage = {
+                id: Date.now() + 1,
+                text: "Sorry, I encountered an error connecting to the server.",
+                sender: 'bot'
+            };
+            setMessages(prev => [...prev, errorMessage]);
         } finally {
-            setIsTyping(false);
+            setIsLoading(false);
         }
     };
 
-    if (!isVisible) return null;
-
     return (
-        <div className="chatbot-popup">
-            <div className="chatbot-header">
-                <span>Omada Assistant</span>
-                <button onClick={onClose} className="close-btn">×</button>
-            </div>
-            <div className="chatbot-messages">
-                {messages.map((msg, index) => (
-                    <div key={index} className={`message ${msg.sender}`}>
-                        {msg.text}
+        <>
+            <button className="chatbot-button" onClick={toggleChat}>
+                {isOpen ? '✕' : '🤖'}
+            </button>
+
+            {isOpen && (
+                <div className="chatbot-window">
+                    <div className="chatbot-header">
+                        <span>Omada Assistant</span>
+                        <button className="close-btn" onClick={toggleChat}>✕</button>
                     </div>
-                ))}
-                {isTyping && <TypingIndicator />}
-                <div ref={messagesEndRef} />
-            </div>
-            <div className="chatbot-input-container">
-                <input
-                    type="text"
-                    className="chatbot-input"
-                    placeholder="Ask me anything..."
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={handleSendMessage}
-                />
-                <button className="send-btn" onClick={handleSendMessage}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                </button>
-            </div>
-        </div>
+
+                    <div className="chatbot-messages">
+                        {messages.map((msg) => (
+                            <div key={msg.id} className={`message ${msg.sender}`}>
+                                {msg.text}
+                            </div>
+                        ))}
+                        {isLoading && <div className="loading-message">Thinking...</div>}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    <form className="chatbot-input-area" onSubmit={handleSendMessage}>
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder="Type a message..."
+                            disabled={isLoading}
+                        />
+                        <button type="submit" disabled={isLoading || !input.trim()}>
+                            ➤
+                        </button>
+                    </form>
+                </div>
+            )}
+        </>
     );
 };
 

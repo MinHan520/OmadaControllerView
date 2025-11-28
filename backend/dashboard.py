@@ -2,6 +2,7 @@
 This module handles dashboard-related operations for the Omada controller.
 """
 from authentication import make_request
+from firebase_utils import save_document
 
 def get_site_overview_diagram(base_url, access_token, omadac_id, site_id):
     """
@@ -30,6 +31,12 @@ def get_site_overview_diagram(base_url, access_token, omadac_id, site_id):
         if data.get("errorCode") == 0:
             print(f"Successfully retrieved dashboard for site {site_id}.")
             dashboard_info = data.get("result")
+            
+            # --- Firestore Integration ---
+            print("---[dashboard] Saving dashboard info to Firestore... ---")
+            save_document(collection_id="site_dashboards", document_id=site_id, data=dashboard_info)
+            # ---------------------------
+
             return dashboard_info
         print(f"API Error fetching dashboard: {data.get('msg')} (Code: {data.get('errorCode')})")
     except (ValueError, KeyError) as e:

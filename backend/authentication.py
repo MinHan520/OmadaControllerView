@@ -21,6 +21,7 @@ def make_request(base_url, method, url_path, headers=None, data=None, json_data=
     url = f"{base_url}{url_path}"
     
     try:
+        print(f"\n--- [API Request] {method} {url} ---")
         response = requests.request(
             method,
             url,
@@ -31,6 +32,15 @@ def make_request(base_url, method, url_path, headers=None, data=None, json_data=
             verify=False, # In production, this should be True with a valid cert
             timeout=30
         )
+        print(f"--- [API Response] Status: {response.status_code} ---")
+        try:
+            # Try to pretty print JSON response
+            print(json.dumps(response.json(), indent=2))
+        except Exception:
+            # Fallback to text if not JSON
+            print(response.text)
+        print("------------------------------------------------")
+
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
         return response
     except requests.exceptions.HTTPError as e:

@@ -2,6 +2,7 @@
 This module handles device-related operations for the Omada controller.
 """
 from authentication import make_request
+from firebase_utils import save_document
 
 def get_devices_list(base_url, access_token, omadac_id, site_id):
     """
@@ -52,6 +53,13 @@ def get_devices_list(base_url, access_token, omadac_id, site_id):
                 break
 
             all_devices.extend(current_page_devices)
+            
+            # --- Firestore Integration ---
+            print("---[devices] Saving fetched devices to Firestore... ---")
+            for device in current_page_devices:
+                save_document(collection_id="devices", document_id=device.get("mac"), data=device)
+            # ---------------------------
+
             print(f"Fetched {len(current_page_devices)} devices. Total so far: {len(all_devices)}/{total_devices}")
 
             if len(all_devices) >= total_devices:
@@ -80,7 +88,9 @@ def get_device_details(base_url, access_token, omadac_id, site_id, mac):
         dict: A dictionary of the device's details, or None if the request fails.
     """
     print(f"\n--- Fetching Device Details for MAC: {mac} in Site ID: {site_id} ---")
-    url_path = f"/openapi/v1/{omadac_id}/sites/{site_id}/devices/{mac}"
+    # The API likely expects the MAC address without dashes or colons
+    mac_clean = mac.replace("-", "").replace(":", "")
+    url_path = f"/openapi/v1/{omadac_id}/sites/{site_id}/devices/{mac_clean}"
     headers = {"Authorization": f"AccessToken={access_token}"}
 
     response = make_request(base_url, "GET", url_path, headers=headers)
@@ -92,7 +102,14 @@ def get_device_details(base_url, access_token, omadac_id, site_id, mac):
         data = response.json()
         if data.get("errorCode") == 0:
             print(f"Successfully retrieved device details for {mac}.")
-            return data.get("result")
+            device_info = data.get("result")
+            
+            # --- Firestore Integration ---
+            print(f"---[device_details] Saving details for {mac} to Firestore... ---")
+            save_document(collection_id="device_details", document_id=mac, data=device_info)
+            # ---------------------------
+            
+            return device_info
         print(f"API Error fetching device details: {data.get('msg')} (Code: {data.get('errorCode')})")
     except (ValueError, KeyError) as e:
         print(f"An error occurred while parsing device details response: {e}")

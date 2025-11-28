@@ -22,6 +22,7 @@ def get_sites_list(base_url, access_token, omadac_id):
 
         try:
             data = response.json()
+            print(f"---[sites-v1] Raw API Response Data: {data} ---")
             if data.get("errorCode") != 0:
                 return data
 

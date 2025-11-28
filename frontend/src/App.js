@@ -1,37 +1,34 @@
 import React, { useState } from 'react';
-import './App.css';
 import Login from './Login';
 import Dashboard from './Dashboard';
+import Chatbot from './Chatbot';
+import './App.css';
 
 function App() {
-  const [accessToken, setAccessToken] = useState(null);
-  const [refreshToken, setRefreshToken] = useState(null);
-  const [baseUrl, setBaseUrl] = useState(null);
-  const [ngrokUrl, setNgrokUrl] = useState(null);
+    const [accessToken, setAccessToken] = useState('');
+    const [refreshToken, setRefreshToken] = useState('');
+    const [baseUrl, setBaseUrl] = useState('');
+    const [ngrokUrl, setNgrokUrl] = useState('');
 
-  const handleLogin = (newAccessToken, newRefreshToken, url, ngrok) => {
-    setAccessToken(newAccessToken);
-    setRefreshToken(newRefreshToken);
-    setBaseUrl(url);
-    setNgrokUrl(ngrok);
-  };
+    const handleLogin = (access, refresh, base, ngrok) => {
+        setAccessToken(access);
+        setRefreshToken(refresh);
+        setBaseUrl(base);
+        setNgrokUrl(ngrok);
+    };
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        {accessToken ? 
-          <Dashboard 
-            token={accessToken} 
-            setToken={setAccessToken} // Pass the setter function
-            refreshToken={refreshToken} 
-            ngrokUrl={ngrokUrl} 
-            baseUrl={baseUrl} 
-          /> : 
-          <Login onLogin={handleLogin} />
-        }
-      </header>
-    </div>
-  );
+    return (
+        <div className="App">
+            {!accessToken ? (
+                <Login onLogin={handleLogin} />
+            ) : (
+                <>
+                    <Dashboard accessToken={accessToken} refreshToken={refreshToken} baseUrl={baseUrl} ngrokUrl={ngrokUrl} />
+                    <Chatbot accessToken={accessToken} baseUrl={baseUrl} apiUrl={ngrokUrl} />
+                </>
+            )}
+        </div>
+    );
 }
 
 export default App;

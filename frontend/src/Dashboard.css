@@ -1,4 +1,3 @@
-
 /* General Dashboard Layout */
 .dashboard-container {
     display: flex;
@@ -27,21 +26,25 @@
 /* Sidebar Styles */
 .sidebar {
     width: 250px;
-    background-color: #2c3e50; /* Dark blue-grey */
+    background-color: #2c3e50;
+    /* Dark blue-grey */
     color: white;
     padding: 1rem;
-    transition: width 0.3s ease;
+    transition: width 0.3s ease, transform 0.3s ease;
     display: flex;
     flex-direction: column;
-    position: absolute;
     height: 100%;
     z-index: 100;
+    flex-shrink: 0;
+    /* Prevent sidebar from shrinking */
 }
 
 .sidebar h3 {
     text-align: center;
     margin-bottom: 2rem;
     font-size: 1.5rem;
+    margin-top: 3rem;
+    /* Space for hamburger if needed, or adjust layout */
 }
 
 .sites-dropdown {
@@ -73,11 +76,13 @@
 }
 
 .sidebar-nav li:hover {
-    background-color: #34495e; /* Slightly lighter blue-grey */
+    background-color: #34495e;
+    /* Slightly lighter blue-grey */
 }
 
 .sidebar-nav li.active {
-    background-color: #1abc9c; /* Teal color */
+    background-color: #1abc9c;
+    /* Teal color */
     font-weight: bold;
 }
 
@@ -92,7 +97,7 @@
     background-color: white;
     padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .info-card h3 {
@@ -107,16 +112,192 @@
     color: #333;
 }
 
-/* Hamburger Menu */
-.hamburger {
-    display: none; /* Hidden by default, shown in media query */
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 101;
+/* Devices Table Styles */
+.devices-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.devices-table th,
+.devices-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.devices-table th {
+    font-weight: 600;
+    color: #888;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.devices-table tr:hover {
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+.device-name-cell {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    color: #333;
+}
+
+.device-icon {
+    width: 24px;
+    height: 24px;
+    background-color: #ddd;
+    /* Placeholder */
+    border-radius: 4px;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+/* Status Pills */
+.status-pill {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    text-transform: uppercase;
+}
+
+.status-connected {
+    color: #2ecc71;
+    /* Green */
+    border-color: #2ecc71;
+    background-color: rgba(46, 204, 113, 0.1);
+}
+
+.status-provisioning {
+    color: #2ecc71;
+    /* Green */
+    border-color: #2ecc71;
+    background-color: rgba(46, 204, 113, 0.1);
+}
+
+.status-disconnected {
+    color: #e74c3c;
+    /* Red */
+    border-color: #e74c3c;
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.status-pending,
+.status-adopting {
+    color: #3498db;
+    /* Blue */
+    border-color: #3498db;
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.status-heartbeat-missed {
+    color: #e67e22;
+    /* Orange */
+    border-color: #e67e22;
+    background-color: rgba(230, 126, 34, 0.1);
+}
+
+.status-unknown {
+    color: #95a5a6;
+    /* Grey */
+    border-color: #95a5a6;
+    background-color: rgba(149, 165, 166, 0.1);
+}
+
+/* Device Details View */
+.device-details-container {
+    padding: 1rem;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    color: #2c3e50;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.back-button:hover {
+    text-decoration: underline;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detail-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item strong {
+    display: block;
+    color: #777;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.raw-data {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+/* Action Buttons */
+.action-btn {
     background: none;
     border: none;
     cursor: pointer;
+    font-size: 1.1rem;
+    margin-right: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.resolve-btn {
+    color: #2ecc71;
+}
+
+.resolve-btn:hover {
+    background-color: rgba(46, 204, 113, 0.1);
+}
+
+.remove-btn {
+    color: #e74c3c;
+}
+
+.remove-btn:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* Hamburger Menu */
+.hamburger {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1000;
+    /* Ensure it's above everything */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    background-color: rgba(255, 255, 255, 0.8);
+    /* Semi-transparent background for visibility */
+    border-radius: 4px;
 }
 
 .hamburger span {
@@ -131,15 +312,18 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .dashboard-container {
+        position: relative;
+        /* For absolute sidebar positioning on mobile */
+    }
+
     .sidebar {
-        left: -250px; /* Hidden by default */
-    }
-
-    .sidebar.open {
+        position: absolute;
         left: 0;
+        top: 0;
+        height: 100%;
+        transform: translateX(0);
     }
 
-    .hamburger {
-        display: block;
-    }
+    /* When sidebar is hidden on mobile, we might want to animate it out or just unmount it (React does unmount) */
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Login.css';
 
-const NGROK_URL = "https://5d7a523e24d2.ngrok-free.app";
+const NGROK_URL = "https://f7c2a5ec4f0e.ngrok-free.app";
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -64,9 +64,9 @@ function Login({ onLogin }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <span 
+        <span
           className="password-toggle-icon"
-          onClick={() => setShowPassword(!showPassword)} 
+          onClick={() => setShowPassword(!showPassword)}
         >
           {showPassword ? '👁️' : '👁️‍🗨️'}
         </span>
